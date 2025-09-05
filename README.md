@@ -37,6 +37,7 @@
         .instructions { background: #f0f0f0; padding: 10px; margin-bottom: 10px; }
         .qr-code { width: 100px; height: 100px; background: #ccc; margin: 10px 0; }
         .copy-button { padding: 5px 10px; font-size: 12px; }
+        #bank-name-custom { display: none; }
     </style>
 </head>
 <body>
@@ -45,7 +46,7 @@
         <h1>Prop Firm Dashboard</h1>
     </header>
 
- <nav id="menu">
+<nav id="menu">
         <ul>
             <li data-section="dashboard-section">Dashboard</li>
             <li data-section="co-funding-section">Co-Funding Request</li>
@@ -63,8 +64,8 @@
             <p>Placeholder for recent results (e.g., success rates, payouts).</p>
         </section>
 
-      <!-- Co-Funding Section -->
- <section id="co-funding-section">
+        <!-- Co-Funding Section -->
+  <section id="co-funding-section">
             <h1>Co-Funding Request</h1>
             <h2>Step 1: Select Prop Firm</h2>
             <select id="prop-firm">
@@ -87,9 +88,8 @@
             <span id="co-funder-share" class="share-display">N/A</span>
             <button id="submit-request">Submit Request</button>
         </section>
-
- <!-- Wallet Dashboard Section -->
-  <section id="wallet-section">
+  <!-- Wallet Dashboard Section -->
+        <section id="wallet-section">
             <h1>Wallet Dashboard</h1>
             <div class="tab-container">
                 <div class="tab active" data-tab="deposit-tab">Deposit</div>
@@ -122,12 +122,23 @@
                 <input type="number" id="withdraw-amount" min="1" value="200">
                 <label for="withdraw-method">Select Destination Method:</label>
                 <div class="method-buttons">
-                    <button class="method-button active" data-method="Bank">🏦 Bank Account</button>
-                    <button class="method-button" data-method="Crypto">🔗 Crypto Wallet</button>
+                    <button class="method-button active" data-method="Bank Account">🏦 Bank Account</button>
+                    <button class="method-button" data-method="Crypto Wallet">🔗 Crypto Wallet</button>
                     <button class="method-button" data-method="Mobile Money">📲 Mobile Money</button>
                 </div>
+                <div id="bank-name-container">
+                    <label for="bank-name">Bank Name:</label>
+                    <select id="bank-name">
+                        <option value="GTBank">GTBank</option>
+                        <option value="Zenith Bank">Zenith Bank</option>
+                        <option value="First Bank">First Bank</option>
+                        <option value="Access Bank">Access Bank</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="text" id="bank-name-custom" placeholder="Enter bank name">
+                </div>
                 <label for="withdraw-destination">Destination:</label>
-                <input type="text" id="withdraw-destination" placeholder="Enter wallet address or bank account">
+                <input type="text" id="withdraw-destination" placeholder="Enter bank account or wallet address">
                 <label for="withdraw-security">Security (OTP/PIN):</label>
                 <input type="text" id="withdraw-security" placeholder="Enter OTP or PIN">
                 <button id="submit-withdraw" class="submit-withdraw">Submit Withdrawal</button>
@@ -135,16 +146,16 @@
                 <ul id="recent-withdrawals" class="transaction-list"></ul>
             </div>
         </section>
-
   <!-- View All Requests Section -->
- <section id="requests-section">
+        <section id="requests-section">
             <h2>All Requests</h2>
             <ul id="all-requests-list"></ul>
             <button id="view-pending">View and Accept Pending Requests</button>
         </section>
     </div>
-<!-- Pending Requests Modal -->
-    <div id="pending-modal">
+
+    <!-- Pending Requests Modal -->
+ <div id="pending-modal">
         <div id="pending-content">
             <h2>Pending Requests</h2>
             <ul id="pending-list"></ul>
@@ -152,7 +163,7 @@
         </div>
     </div>
 
-  <script>
+<script>
         // Prop Firm Data
         const propFirms = {
             "FTMO": {
@@ -247,6 +258,9 @@
         const withdrawMethodButtons = document.querySelectorAll('#withdraw-tab .method-button');
         const withdrawDestination = document.getElementById('withdraw-destination');
         const withdrawSecurity = document.getElementById('withdraw-security');
+        const bankNameSelect = document.getElementById('bank-name');
+        const bankNameCustom = document.getElementById('bank-name-custom');
+        const bankNameContainer = document.getElementById('bank-name-container');
         const submitWithdraw = document.getElementById('submit-withdraw');
         const recentDeposits = document.getElementById('recent-deposits');
         const recentWithdrawals = document.getElementById('recent-withdrawals');
@@ -255,7 +269,7 @@
         let selectedAccount = 'N/A';
         let accountPrice = 0.0;
         let selectedDepositMethod = 'Bank';
-        let selectedWithdrawMethod = 'Bank';
+        let selectedWithdrawMethod = 'Bank Account';
 
         // Load requests from localStorage
         function loadRequests() {
@@ -407,8 +421,10 @@
 
         // Update withdrawal destination details
         function updateWithdrawDetails() {
-            const placeholder = selectedWithdrawMethod === 'Crypto' ? 'Enter wallet address' : 'Enter bank account or mobile number';
+            const placeholder = selectedWithdrawMethod === 'Crypto Wallet' ? 'Enter wallet address' : selectedWithdrawMethod === 'Mobile Money' ? 'Enter mobile number' : 'Enter bank account number';
             withdrawDestination.placeholder = placeholder;
+            bankNameContainer.style.display = selectedWithdrawMethod === 'Bank Account' ? 'block' : 'none';
+            bankNameCustom.style.display = bankNameSelect.value === 'Other' ? 'block' : 'none';
         }
 
         // Submit deposit request
@@ -498,6 +514,15 @@
                 return;
             }
 
+            let bankName = null;
+            if (selectedWithdrawMethod === 'Bank Account') {
+                bankName = bankNameSelect.value === 'Other' ? bankNameCustom.value : bankNameSelect.value;
+                if (!bankName) {
+                    alert('Please select or enter a valid bank name.');
+                    return;
+                }
+            }
+
             const requests = loadRequests();
             const newRequest = {
                 id: requests.length + 1,
@@ -505,6 +530,7 @@
                 amount: amount,
                 method: selectedWithdrawMethod,
                 destination: destination,
+                bank_name: bankName,
                 security: security,
                 status: 'Pending',
                 date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
@@ -516,6 +542,9 @@
             withdrawAmount.value = '200';
             withdrawDestination.value = '';
             withdrawSecurity.value = '';
+            bankNameSelect.value = 'GTBank';
+            bankNameCustom.value = '';
+            bankNameCustom.style.display = 'none';
             loadRecentTransactions();
         }
 
@@ -537,7 +566,8 @@
             const withdrawals = requests.filter(req => req.type === 'withdraw').slice(-5);
             withdrawals.forEach(req => {
                 const li = document.createElement('li');
-                li.textContent = `${req.date} | ${req.method} | $${req.amount.toFixed(2)} | ${req.status === 'Completed' ? '✅ Completed' : '⏳ Pending'}`;
+                const method = req.method === 'Bank Account' && req.bank_name ? `${req.method} (${req.bank_name})` : req.method;
+                li.textContent = `${req.date} | ${method} | $${req.amount.toFixed(2)} | ${req.status === 'Completed' ? '✅ Completed' : '⏳ Pending'}`;
                 recentWithdrawals.appendChild(li);
             });
             if (withdrawals.length === 0) recentWithdrawals.innerHTML = '<li>No recent withdrawals.</li>';
@@ -586,7 +616,7 @@
             loadAllRequests();
         }
 
-        // Load all requests
+        // Load all requests (Admin Dashboard)
         function loadAllRequests() {
             const requests = loadRequests();
             allRequestsList.innerHTML = '';
@@ -605,7 +635,8 @@
                     const method = req.method === 'Crypto' ? `Crypto (${req.details.coin_type || 'Unknown'})` : req.method;
                     text += `Amount: $${req.amount.toFixed(2)} | Method: ${method} | ${'proof' in req.details ? `Proof: ${req.details.proof}` : `Card: ${req.details.card_number}`}`;
                 } else if (req.type === 'withdraw') {
-                    text += `Amount: $${req.amount.toFixed(2)} | Method: ${req.method} | Destination: ${req.destination}`;
+                    const method = req.bank_name ? `${req.method} (${req.bank_name})` : req.method;
+                    text += `Amount: $${req.amount.toFixed(2)} | Method: ${method} | Destination: ${req.destination}`;
                 }
                 text += ` | Status: ${req.status}`;
                 li.textContent = text;
@@ -661,6 +692,11 @@
                 selectedWithdrawMethod = button.dataset.method;
                 updateWithdrawDetails();
             });
+        });
+
+        // Bank name dropdown handling
+        bankNameSelect.addEventListener('change', () => {
+            bankNameCustom.style.display = bankNameSelect.value === 'Other' ? 'block' : 'none';
         });
 
         // Event listeners

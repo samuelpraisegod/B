@@ -32,6 +32,11 @@
         .method-buttons { display: flex; gap: 10px; margin-bottom: 10px; }
         .method-button { padding: 8px 16px; border: 1px solid #ddd; cursor: pointer; }
         .method-button.active { background: #333; color: white; }
+        .confirm-deposit { background: green; color: white; }
+        .submit-withdraw { background: blue; color: white; }
+        .instructions { background: #f0f0f0; padding: 10px; margin-bottom: 10px; }
+        .qr-code { width: 100px; height: 100px; background: #ccc; margin: 10px 0; }
+        .copy-button { padding: 5px 10px; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -58,8 +63,8 @@
             <p>Placeholder for recent results (e.g., success rates, payouts).</p>
         </section>
 
-     <!-- Co-Funding Section -->
-  <section id="co-funding-section">
+      <!-- Co-Funding Section -->
+ <section id="co-funding-section">
             <h1>Co-Funding Request</h1>
             <h2>Step 1: Select Prop Firm</h2>
             <select id="prop-firm">
@@ -83,7 +88,7 @@
             <button id="submit-request">Submit Request</button>
         </section>
 
-        <!-- Wallet Dashboard Section -->
+ <!-- Wallet Dashboard Section -->
   <section id="wallet-section">
             <h1>Wallet Dashboard</h1>
             <div class="tab-container">
@@ -94,57 +99,52 @@
                 <h2>Deposit Funds</h2>
                 <label>Choose Method:</label>
                 <div class="method-buttons">
-                    <button class="method-button active" data-method="Bank">💳 Bank</button>
-                    <button class="method-button" data-method="Card">💵 Card</button>
-                    <button class="method-button" data-method="Crypto">🔗 Crypto</button>
+                    <button class="method-button active" data-method="Bank">💳 Bank Transfer</button>
+                    <button class="method-button" data-method="Card">💵 Card Payment</button>
+                    <button class="method-button" data-method="Crypto">🔗 Crypto Wallet</button>
                 </div>
-                <label for="deposit-amount">Amount ($):</label>
+                <label for="deposit-amount">Enter Amount ($):</label>
                 <input type="number" id="deposit-amount" min="1" value="500">
                 <label for="deposit-currency">Currency:</label>
                 <select id="deposit-currency">
                     <option value="USD">USD</option>
                 </select>
-                <div id="deposit-details">
-                    <p><strong>Payment Details:</strong></p>
-                    <p>Bank: Example Bank, Account: 1234-5678-9012, Routing: 987654321</p>
-                    <label for="payment-proof">Upload Proof of Payment:</label>
-                    <input type="file" id="payment-proof" accept="image/*,application/pdf">
-                </div>
-                <button id="submit-deposit">Confirm Deposit</button>
+                <div id="deposit-details"></div>
+                <p class="instructions">⚠️ Please make payment to the account/wallet shown above. Your deposit will be confirmed once payment is received.</p>
+                <button id="submit-deposit" class="confirm-deposit">✅ Confirm Deposit</button>
                 <h2>Recent Deposits</h2>
                 <ul id="recent-deposits" class="transaction-list"></ul>
             </div>
             <div id="withdraw-tab" class="tab-content">
                 <h2>Withdraw Funds</h2>
                 <p><strong>Available Balance:</strong> $2,450.00</p>
-                <label for="withdraw-amount">Amount ($):</label>
+                <label for="withdraw-amount">Enter Amount ($):</label>
                 <input type="number" id="withdraw-amount" min="1" value="200">
-                <label for="withdraw-method">Method:</label>
-                <select id="withdraw-method">
-                    <option value="Bank">🏦 Bank</option>
-                    <option value="Crypto">🔗 Crypto</option>
-                    <option value="Mobile Money">📲 Mobile Money</option>
-                </select>
+                <label for="withdraw-method">Select Destination Method:</label>
+                <div class="method-buttons">
+                    <button class="method-button active" data-method="Bank">🏦 Bank Account</button>
+                    <button class="method-button" data-method="Crypto">🔗 Crypto Wallet</button>
+                    <button class="method-button" data-method="Mobile Money">📲 Mobile Money</button>
+                </div>
                 <label for="withdraw-destination">Destination:</label>
                 <input type="text" id="withdraw-destination" placeholder="Enter wallet address or bank account">
                 <label for="withdraw-security">Security (OTP/PIN):</label>
                 <input type="text" id="withdraw-security" placeholder="Enter OTP or PIN">
-                <button id="submit-withdraw">Submit Withdrawal</button>
+                <button id="submit-withdraw" class="submit-withdraw">Submit Withdrawal</button>
                 <h2>Recent Withdrawals</h2>
                 <ul id="recent-withdrawals" class="transaction-list"></ul>
             </div>
         </section>
 
-        <!-- View All Requests Section -->
+  <!-- View All Requests Section -->
  <section id="requests-section">
             <h2>All Requests</h2>
             <ul id="all-requests-list"></ul>
             <button id="view-pending">View and Accept Pending Requests</button>
         </section>
     </div>
-
-    <!-- Pending Requests Modal -->
-  <div id="pending-modal">
+<!-- Pending Requests Modal -->
+    <div id="pending-modal">
         <div id="pending-content">
             <h2>Pending Requests</h2>
             <ul id="pending-list"></ul>
@@ -216,6 +216,7 @@
                     loadAllRequests();
                 } else if (sectionId === 'wallet-section') {
                     updateDepositDetails();
+                    updateWithdrawDetails();
                     loadRecentTransactions();
                 }
             });
@@ -240,21 +241,21 @@
         const tabContents = document.querySelectorAll('.tab-content');
         const depositAmount = document.getElementById('deposit-amount');
         const depositCurrency = document.getElementById('deposit-currency');
-        const paymentProof = document.getElementById('payment-proof');
+        const depositDetails = document.getElementById('deposit-details');
         const submitDeposit = document.getElementById('submit-deposit');
         const withdrawAmount = document.getElementById('withdraw-amount');
-        const withdrawMethod = document.getElementById('withdraw-method');
+        const withdrawMethodButtons = document.querySelectorAll('#withdraw-tab .method-button');
         const withdrawDestination = document.getElementById('withdraw-destination');
         const withdrawSecurity = document.getElementById('withdraw-security');
         const submitWithdraw = document.getElementById('submit-withdraw');
-        const depositDetails = document.getElementById('deposit-details');
         const recentDeposits = document.getElementById('recent-deposits');
         const recentWithdrawals = document.getElementById('recent-withdrawals');
-        const methodButtons = document.querySelectorAll('.method-button');
+        const depositMethodButtons = document.querySelectorAll('#deposit-tab .method-button');
 
         let selectedAccount = 'N/A';
         let accountPrice = 0.0;
         let selectedDepositMethod = 'Bank';
+        let selectedWithdrawMethod = 'Bank';
 
         // Load requests from localStorage
         function loadRequests() {
@@ -266,7 +267,12 @@
             localStorage.setItem('requests', JSON.stringify(requests));
         }
 
-        // Update account sizes (Co-Funding)
+        // Generate random reference code
+        function generateReferenceCode() {
+            return 'REF-' + Math.random().toString(36).substr(2, 4).toUpperCase();
+        }
+
+        // Update co-funding account sizes
         function updateAccountSizes() {
             const firm = firmSelect.value;
             accountOptions.innerHTML = '';
@@ -293,7 +299,7 @@
             calculateShares();
         }
 
-        // Calculate shares (Co-Funding)
+        // Calculate co-funding shares
         function calculateShares() {
             const profitSplit = profitSplitInput.value || '50:50';
             if (selectedAccount === 'N/A') {
@@ -350,7 +356,7 @@
                 requester_share: reqShareVal,
                 co_funder_share: coShareVal,
                 status: 'Pending',
-                date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
+                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
             };
             requests.push(newRequest);
             saveRequests(requests);
@@ -366,7 +372,10 @@
             const details = {
                 'Bank': `
                     <p><strong>Payment Details:</strong></p>
-                    <p>Bank: Example Bank, Account: 1234-5678-9012, Routing: 987654321</p>
+                    <p>Bank Name: GTBank</p>
+                    <p>Account Name: MarketFlowFX Ltd</p>
+                    <p>Account Number: 0123456789</p>
+                    <p>Reference Code: ${generateReferenceCode()}</p>
                     <label for="payment-proof">Upload Proof of Payment:</label>
                     <input type="file" id="payment-proof" accept="image/*,application/pdf">
                 `,
@@ -374,15 +383,32 @@
                     <p><strong>Payment Details:</strong></p>
                     <label for="card-number">Card Number:</label>
                     <input type="text" id="card-number" placeholder="1234-5678-9012-3456">
+                    <label for="card-expiry">Expiry (MM/YY):</label>
+                    <input type="text" id="card-expiry" placeholder="MM/YY">
+                    <label for="card-cvv">CVV:</label>
+                    <input type="text" id="card-cvv" placeholder="123">
                 `,
                 'Crypto': `
                     <p><strong>Payment Details:</strong></p>
-                    <p>Wallet Address: 0x1234567890abcdef</p>
-                    <label for="payment-proof">Upload Proof of Payment:</label>
-                    <input type="file" id="payment-proof" accept="image/*,application/pdf">
+                    <label for="coin-type">Select Coin:</label>
+                    <select id="coin-type">
+                        <option value="BTC">BTC</option>
+                        <option value="USDT">USDT</option>
+                        <option value="ETH">ETH</option>
+                    </select>
+                    <p>Wallet Address: 0xAB123456789CDEFFED1234...</p>
+                    <button class="copy-button" onclick="navigator.clipboard.writeText('0xAB123456789CDEFFED1234...').then(() => alert('Address copied!'))">Copy Address</button>
+                    <p>QR Code:</p>
+                    <div class="qr-code"></div>
                 `
             };
             depositDetails.innerHTML = details[selectedDepositMethod];
+        }
+
+        // Update withdrawal destination details
+        function updateWithdrawDetails() {
+            const placeholder = selectedWithdrawMethod === 'Crypto' ? 'Enter wallet address' : 'Enter bank account or mobile number';
+            withdrawDestination.placeholder = placeholder;
         }
 
         // Submit deposit request
@@ -394,20 +420,35 @@
             }
 
             let details = {};
-            if (selectedDepositMethod === 'Bank' || selectedDepositMethod === 'Crypto') {
+            if (selectedDepositMethod === 'Bank') {
                 const proof = document.getElementById('payment-proof')?.files[0];
                 if (!proof) {
                     alert('Please upload proof of payment.');
                     return;
                 }
                 details.proof = proof.name;
+                details.reference_code = generateReferenceCode();
             } else if (selectedDepositMethod === 'Card') {
                 const cardNumber = document.getElementById('card-number')?.value;
-                if (!cardNumber) {
-                    alert('Please enter a valid card number.');
+                const cardExpiry = document.getElementById('card-expiry')?.value;
+                const cardCvv = document.getElementById('card-cvv')?.value;
+                if (!cardNumber || !cardExpiry || !cardCvv) {
+                    alert('Please enter valid card details.');
                     return;
                 }
                 details.card_number = cardNumber;
+                details.card_expiry = cardExpiry;
+                details.card_cvv = cardCvv;
+            } else if (selectedDepositMethod === 'Crypto') {
+                const proof = document.getElementById('payment-proof')?.files[0];
+                const coinType = document.getElementById('coin-type')?.value;
+                if (!proof) {
+                    alert('Please upload proof of payment.');
+                    return;
+                }
+                details.proof = proof.name;
+                details.coin_type = coinType;
+                details.wallet_address = '0xAB123456789CDEFFED1234...';
             }
 
             const requests = loadRequests();
@@ -419,7 +460,7 @@
                 currency: depositCurrency.value,
                 details: details,
                 status: 'Pending',
-                date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
+                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
             };
             requests.push(newRequest);
             saveRequests(requests);
@@ -428,6 +469,8 @@
             depositAmount.value = '500';
             if (document.getElementById('payment-proof')) document.getElementById('payment-proof').value = '';
             if (document.getElementById('card-number')) document.getElementById('card-number').value = '';
+            if (document.getElementById('card-expiry')) document.getElementById('card-expiry').value = '';
+            if (document.getElementById('card-cvv')) document.getElementById('card-cvv').value = '';
             loadRecentTransactions();
         }
 
@@ -443,7 +486,6 @@
                 return;
             }
 
-            const method = withdrawMethod.value;
             const destination = withdrawDestination.value;
             if (!destination) {
                 alert('Please enter a valid destination.');
@@ -461,18 +503,17 @@
                 id: requests.length + 1,
                 type: 'withdraw',
                 amount: amount,
-                method: method,
+                method: selectedWithdrawMethod,
                 destination: destination,
                 security: security,
                 status: 'Pending',
-                date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
+                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
             };
             requests.push(newRequest);
             saveRequests(requests);
 
-            alert(`Withdrawal request for $${amount.toFixed(2)} via ${method} submitted! Status: Pending`);
+            alert(`Withdrawal request for $${amount.toFixed(2)} via ${selectedWithdrawMethod} submitted! Status: Pending`);
             withdrawAmount.value = '200';
-            withdrawMethod.value = 'Bank';
             withdrawDestination.value = '';
             withdrawSecurity.value = '';
             loadRecentTransactions();
@@ -487,7 +528,8 @@
             const deposits = requests.filter(req => req.type === 'deposit').slice(-5);
             deposits.forEach(req => {
                 const li = document.createElement('li');
-                li.textContent = `${req.date} | ${req.method} | $${req.amount.toFixed(2)} | ${req.status === 'Completed' ? '✅ Completed' : '⏳ Pending'}`;
+                const method = req.method === 'Crypto' ? `Crypto (${req.details.coin_type || 'Unknown'})` : req.method;
+                li.textContent = `${req.date} | ${method} | $${req.amount.toFixed(2)} | ${req.status === 'Completed' ? '✅ Completed' : '⏳ Pending'}`;
                 recentDeposits.appendChild(li);
             });
             if (deposits.length === 0) recentDeposits.innerHTML = '<li>No recent deposits.</li>';
@@ -560,7 +602,8 @@
                 if (req.type === 'co-funding') {
                     text += `Firm: ${req.prop_firm} | Size: ${req.account_size} | Price: $${req.account_price.toFixed(2)} | Profit Split: ${req.profit_split} | Requester Share: $${req.requester_share.toFixed(2)} | Co-Funder Share: $${req.co_funder_share.toFixed(2)}`;
                 } else if (req.type === 'deposit') {
-                    text += `Amount: $${req.amount.toFixed(2)} | Method: ${req.method} | ${'proof' in req.details ? `Proof: ${req.details.proof}` : `Card: ${req.details.card_number}`}`;
+                    const method = req.method === 'Crypto' ? `Crypto (${req.details.coin_type || 'Unknown'})` : req.method;
+                    text += `Amount: $${req.amount.toFixed(2)} | Method: ${method} | ${'proof' in req.details ? `Proof: ${req.details.proof}` : `Card: ${req.details.card_number}`}`;
                 } else if (req.type === 'withdraw') {
                     text += `Amount: $${req.amount.toFixed(2)} | Method: ${req.method} | Destination: ${req.destination}`;
                 }
@@ -601,12 +644,22 @@
         });
 
         // Deposit method switching
-        methodButtons.forEach(button => {
+        depositMethodButtons.forEach(button => {
             button.addEventListener('click', () => {
-                methodButtons.forEach(btn => btn.classList.remove('active'));
+                depositMethodButtons.forEach(btn => btn.classList.remove('active'));
                 button.classList.add('active');
                 selectedDepositMethod = button.dataset.method;
                 updateDepositDetails();
+            });
+        });
+
+        // Withdrawal method switching
+        withdrawMethodButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                withdrawMethodButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                selectedWithdrawMethod = button.dataset.method;
+                updateWithdrawDetails();
             });
         });
 
@@ -622,6 +675,7 @@
         // Initial load
         updateAccountSizes();
         updateDepositDetails();
+        updateWithdrawDetails();
         loadAllRequests();
         loadRecentTransactions();
     </script>

@@ -16,7 +16,8 @@
         #dashboard-section { display: block; }
         h2 { font-size: 18px; margin-top: 20px; }
         label { display: block; margin-bottom: 5px; }
-        input, select { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
+        input, select, textarea { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
+        textarea { height: 100px; }
         .account-options, .transaction-list { margin-bottom: 10px; }
         .share-display { font-weight: bold; }
         button { padding: 10px 20px; margin-right: 10px; cursor: pointer; }
@@ -33,10 +34,11 @@
         .method-button { padding: 8px 16px; border: 1px solid #ddd; cursor: pointer; }
         .method-button.active { background: #333; color: white; }
         .confirm-deposit { background: green; color: white; }
-        .submit-withdraw { background: blue; color: white; }
+        .submit-withdraw, .submit-managed { background: blue; color: white; }
         .instructions { background: #f0f0f0; padding: 10px; margin-bottom: 10px; }
         .qr-code { width: 100px; height: 100px; background: #ccc; margin: 10px 0; }
         .copy-button { padding: 5px 10px; font-size: 12px; }
+        #bank-name-container { display: block; }
         #bank-name-custom { display: none; }
     </style>
 </head>
@@ -51,11 +53,12 @@
             <li data-section="dashboard-section">Dashboard</li>
             <li data-section="co-funding-section">Co-Funding Request</li>
             <li data-section="wallet-section">Wallet Dashboard</li>
+            <li data-section="managed-account-section">Managed Account Application</li>
             <li data-section="requests-section">View All Requests</li>
         </ul>
     </nav>
 
- <div id="main-content">
+  <div id="main-content">
         <!-- Dashboard Section -->
         <section id="dashboard-section">
             <h2>Welcome to the Dashboard</h2>
@@ -64,8 +67,8 @@
             <p>Placeholder for recent results (e.g., success rates, payouts).</p>
         </section>
 
-        <!-- Co-Funding Section -->
-  <section id="co-funding-section">
+  <!-- Co-Funding Section -->
+ <section id="co-funding-section">
             <h1>Co-Funding Request</h1>
             <h2>Step 1: Select Prop Firm</h2>
             <select id="prop-firm">
@@ -88,8 +91,9 @@
             <span id="co-funder-share" class="share-display">N/A</span>
             <button id="submit-request">Submit Request</button>
         </section>
-  <!-- Wallet Dashboard Section -->
-        <section id="wallet-section">
+
+ <!-- Wallet Dashboard Section -->
+   <section id="wallet-section">
             <h1>Wallet Dashboard</h1>
             <div class="tab-container">
                 <div class="tab active" data-tab="deposit-tab">Deposit</div>
@@ -146,16 +150,71 @@
                 <ul id="recent-withdrawals" class="transaction-list"></ul>
             </div>
         </section>
-  <!-- View All Requests Section -->
+<!-- Managed Trading Account Application Section -->
+  <section id="managed-account-section">
+            <h1>Managed Trading Account Application</h1>
+            <h2>Investment Plan</h2>
+            <label for="capital-size">Capital Size ($):</label>
+            <input type="number" id="capital-size" min="1000" placeholder="Enter amount (min $1,000)">
+            <label for="trader-type">Type of Trader:</label>
+            <select id="trader-type">
+                <option value="Forex">Forex</option>
+                <option value="Stocks">Stocks</option>
+                <option value="Crypto">Crypto</option>
+                <option value="Commodities">Commodities</option>
+                <option value="All">All</option>
+            </select>
+            <label for="return-cycle">Return Cycle:</label>
+            <select id="return-cycle">
+                <option value="Daily">Daily</option>
+                <option value="Weekly">Weekly</option>
+                <option value="Monthly">Monthly</option>
+                <option value="Long-term">Long-term</option>
+            </select>
+            <label for="profit-target">Profit Target (%):</label>
+            <input type="number" id="profit-target" min="0" max="100" placeholder="Enter percentage (0-100)">
+            <label for="withdrawal-terms">Withdrawal Terms:</label>
+            <input type="text" id="withdrawal-terms" placeholder="Describe withdrawal terms">
+            <label for="lot-size">Lot Size:</label>
+            <input type="number" id="lot-size" min="0.01" step="0.01" placeholder="Enter lot size (e.g., 0.01)">
+            <label for="experience-level">Experience Level:</label>
+            <select id="experience-level">
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Expert">Expert</option>
+            </select>
+            <h2>Proof of Trading Skills</h2>
+            <label for="proof-experience">Proof of Experience (Certificates, Prop Firm Passes):</label>
+            <input type="file" id="proof-experience" accept="image/*,application/pdf">
+            <label for="social-media">Social Media Profile (Optional, e.g., Twitter/X, LinkedIn, Telegram):</label>
+            <input type="text" id="social-media" placeholder="Enter profile URL">
+            <label for="track-record">Track Record Upload (PDF/CSV, e.g., MT4/MT5 history):</label>
+            <input type="file" id="track-record" accept=".pdf,.csv">
+            <label for="trading-style">Trading Style / Short Bio:</label>
+            <textarea id="trading-style" placeholder="Describe your strategy, risk management, and approach"></textarea>
+            <h2>Optional Extras</h2>
+            <label for="risk-tolerance">Risk Tolerance:</label>
+            <select id="risk-tolerance">
+                <option value="">Select (Optional)</option>
+                <option value="Conservative">Conservative</option>
+                <option value="Moderate">Moderate</option>
+                <option value="Aggressive">Aggressive</option>
+            </select>
+            <label>
+                <input type="checkbox" id="terms-agreement">
+                I agree to the terms and conditions
+            </label>
+            <button id="submit-managed" class="submit-managed">Submit Application</button>
+        </section>
+<!-- View All Requests Section -->
         <section id="requests-section">
             <h2>All Requests</h2>
             <ul id="all-requests-list"></ul>
             <button id="view-pending">View and Accept Pending Requests</button>
         </section>
     </div>
-
-    <!-- Pending Requests Modal -->
- <div id="pending-modal">
+ <!-- Pending Requests Modal -->
+    <div id="pending-modal">
         <div id="pending-content">
             <h2>Pending Requests</h2>
             <ul id="pending-list"></ul>
@@ -163,7 +222,7 @@
         </div>
     </div>
 
-<script>
+ <script>
         // Prop Firm Data
         const propFirms = {
             "FTMO": {
@@ -265,6 +324,22 @@
         const recentDeposits = document.getElementById('recent-deposits');
         const recentWithdrawals = document.getElementById('recent-withdrawals');
         const depositMethodButtons = document.querySelectorAll('#deposit-tab .method-button');
+
+        // Managed Account Elements
+        const capitalSize = document.getElementById('capital-size');
+        const traderType = document.getElementById('trader-type');
+        const returnCycle = document.getElementById('return-cycle');
+        const profitTarget = document.getElementById('profit-target');
+        const withdrawalTerms = document.getElementById('withdrawal-terms');
+        const lotSize = document.getElementById('lot-size');
+        const experienceLevel = document.getElementById('experience-level');
+        const proofExperience = document.getElementById('proof-experience');
+        const socialMedia = document.getElementById('social-media');
+        const trackRecord = document.getElementById('track-record');
+        const tradingStyle = document.getElementById('trading-style');
+        const riskTolerance = document.getElementById('risk-tolerance');
+        const termsAgreement = document.getElementById('terms-agreement');
+        const submitManaged = document.getElementById('submit-managed');
 
         let selectedAccount = 'N/A';
         let accountPrice = 0.0;
@@ -548,6 +623,86 @@
             loadRecentTransactions();
         }
 
+        // Submit managed account application
+        function submitManagedRequest() {
+            const capital = parseFloat(capitalSize.value);
+            const profit = parseFloat(profitTarget.value);
+            const lot = parseFloat(lotSize.value);
+            const proofFile = proofExperience.files[0];
+            const trackFile = trackRecord.files[0];
+
+            if (!capital || capital < 1000) {
+                alert('Please enter a valid capital size (minimum $1,000).');
+                return;
+            }
+            if (!profit || profit < 0 || profit > 100) {
+                alert('Please enter a valid profit target (0-100%).');
+                return;
+            }
+            if (!lot || lot < 0.01) {
+                alert('Please enter a valid lot size (minimum 0.01).');
+                return;
+            }
+            if (!withdrawalTerms.value) {
+                alert('Please describe withdrawal terms.');
+                return;
+            }
+            if (!proofFile) {
+                alert('Please upload proof of experience.');
+                return;
+            }
+            if (!trackFile) {
+                alert('Please upload track record.');
+                return;
+            }
+            if (!tradingStyle.value) {
+                alert('Please describe your trading style and bio.');
+                return;
+            }
+            if (!termsAgreement.checked) {
+                alert('You must agree to the terms and conditions.');
+                return;
+            }
+
+            const requests = loadRequests();
+            const newRequest = {
+                id: requests.length + 1,
+                type: 'managed-account',
+                capital_size: capital,
+                trader_type: traderType.value,
+                return_cycle: returnCycle.value,
+                profit_target: profit,
+                withdrawal_terms: withdrawalTerms.value,
+                lot_size: lot,
+                experience_level: experienceLevel.value,
+                proof_experience: proofFile.name,
+                social_media: socialMedia.value || null,
+                track_record: trackFile.name,
+                trading_style: tradingStyle.value,
+                risk_tolerance: riskTolerance.value || null,
+                status: 'Pending',
+                timestamp: new Date().toLocaleString('en-US')
+            };
+            requests.push(newRequest);
+            saveRequests(requests);
+
+            alert(`Managed Trading Account Application submitted! Status: Pending`);
+            capitalSize.value = '';
+            traderType.value = 'Forex';
+            returnCycle.value = 'Daily';
+            profitTarget.value = '';
+            withdrawalTerms.value = '';
+            lotSize.value = '';
+            experienceLevel.value = 'Beginner';
+            proofExperience.value = '';
+            socialMedia.value = '';
+            trackRecord.value = '';
+            tradingStyle.value = '';
+            riskTolerance.value = '';
+            termsAgreement.checked = false;
+            loadAllRequests();
+        }
+
         // Load recent transactions
         function loadRecentTransactions() {
             const requests = loadRequests();
@@ -573,24 +728,34 @@
             if (withdrawals.length === 0) recentWithdrawals.innerHTML = '<li>No recent withdrawals.</li>';
         }
 
-        // View pending co-funding requests
+        // View pending co-funding and managed account requests
         function viewPending() {
             const requests = loadRequests();
-            const pending = requests.filter(req => req.type === 'co-funding' && req.status === 'Pending');
+            const pending = requests.filter(req => (req.type === 'co-funding' || req.type === 'managed-account') && req.status === 'Pending');
             pendingList.innerHTML = '';
 
             if (pending.length === 0) {
-                alert('No pending co-funding requests.');
+                alert('No pending co-funding or managed account requests.');
                 return;
             }
 
             pending.forEach(req => {
                 const li = document.createElement('li');
-                li.textContent = `ID: ${req.id} | Firm: ${req.prop_firm} | Size: ${req.account_size} | Price: $${req.account_price.toFixed(2)} | Profit Split: ${req.profit_split} | Requester Share: $${req.requester_share.toFixed(2)} (Escrow) | Co-Funder Share: $${req.co_funder_share.toFixed(2)} | Status: ${req.status}`;
-                const acceptButton = document.createElement('button');
-                acceptButton.textContent = 'Accept as Co-Funder';
-                acceptButton.onclick = () => acceptRequest(req.id);
-                li.appendChild(acceptButton);
+                let text = `ID: ${req.id} | Type: ${req.type} | `;
+                if (req.type === 'co-funding') {
+                    text += `Firm: ${req.prop_firm} | Size: ${req.account_size} | Price: $${req.account_price.toFixed(2)} | Profit Split: ${req.profit_split} | Requester Share: $${req.requester_share.toFixed(2)} | Co-Funder Share: $${req.co_funder_share.toFixed(2)} | Status: ${req.status}`;
+                    const acceptButton = document.createElement('button');
+                    acceptButton.textContent = 'Accept as Co-Funder';
+                    acceptButton.onclick = () => acceptRequest(req.id);
+                    li.appendChild(acceptButton);
+                } else if (req.type === 'managed-account') {
+                    text += `Trader: ${req.trader_type} | Capital: $${req.capital_size.toFixed(2)} | Profit Target: ${req.profit_target}% | Return Cycle: ${req.return_cycle} | Status: ${req.status}`;
+                    const acceptButton = document.createElement('button');
+                    acceptButton.textContent = 'Accept Application';
+                    acceptButton.onclick = () => acceptManagedRequest(req.id);
+                    li.appendChild(acceptButton);
+                }
+                li.textContent = text;
                 pendingList.appendChild(li);
             });
 
@@ -611,12 +776,25 @@
 
             req.status = 'Active';
             saveRequests(requests);
-            alert(`Request ID ${id} accepted! Total funded: $${req.account_price.toFixed(2)}. Status: Active. Account ready for purchase.`);
+            alert(`Co-Funding Request ID ${id} accepted! Total funded: $${req.account_price.toFixed(2)}. Status: Active.`);
             pendingModal.style.display = 'none';
             loadAllRequests();
         }
 
-        // Load all requests (Admin Dashboard)
+        // Accept managed account request
+        function acceptManagedRequest(id) {
+            const requests = loadRequests();
+            const req = requests.find(r => r.id === id && r.type === 'managed-account' && r.status === 'Pending');
+            if (!req) return;
+
+            req.status = 'Active';
+            saveRequests(requests);
+            alert(`Managed Account Application ID ${id} accepted! Status: Active.`);
+            pendingModal.style.display = 'none';
+            loadAllRequests();
+        }
+
+        // Load all requests (Investor/Admin Dashboard)
         function loadAllRequests() {
             const requests = loadRequests();
             allRequestsList.innerHTML = '';
@@ -637,9 +815,14 @@
                 } else if (req.type === 'withdraw') {
                     const method = req.bank_name ? `${req.method} (${req.bank_name})` : req.method;
                     text += `Amount: $${req.amount.toFixed(2)} | Method: ${method} | Destination: ${req.destination}`;
+                } else if (req.type === 'managed-account') {
+                    text += `Trader: ${req.trader_type} | Capital: $${req.capital_size.toFixed(2)} | Profit Target: ${req.profit_target}% | Return Cycle: ${req.return_cycle} | Withdrawal Terms: ${req.withdrawal_terms} | Lot Size: ${req.lot_size} | Experience: ${req.experience_level}`;
+                    if (req.risk_tolerance) text += ` | Risk Tolerance: ${req.risk_tolerance}`;
+                    text += ` | Proof: ${req.proof_experience} (View) | Track Record: ${req.track_record} (View)`;
+                    if (req.social_media) text += ` | Social: <a href="${req.social_media}" target="_blank">Profile</a>`;
                 }
-                text += ` | Status: ${req.status}`;
-                li.textContent = text;
+                text += ` | Status: ${req.status} | Timestamp: ${req.timestamp || req.date}`;
+                li.innerHTML = text;
 
                 if (req.status === 'Active') {
                     const completeButton = document.createElement('button');
@@ -707,6 +890,7 @@
         closeModalButton.addEventListener('click', () => pendingModal.style.display = 'none');
         submitDeposit.addEventListener('click', submitDepositRequest);
         submitWithdraw.addEventListener('click', submitWithdrawRequest);
+        submitManaged.addEventListener('click', submitManagedRequest);
 
         // Initial load
         updateAccountSizes();

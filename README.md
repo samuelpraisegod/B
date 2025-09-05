@@ -17,18 +17,21 @@
         h2 { font-size: 18px; margin-top: 20px; }
         label { display: block; margin-bottom: 5px; }
         input, select { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
-        .account-options { margin-bottom: 10px; }
+        .account-options, .transaction-list { margin-bottom: 10px; }
         .share-display { font-weight: bold; }
         button { padding: 10px 20px; margin-right: 10px; cursor: pointer; }
         #pending-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
         #pending-content { background: white; padding: 20px; max-width: 500px; width: 90%; max-height: 80%; overflow-y: auto; }
-        #pending-list, #all-requests-list { list-style: none; padding: 0; }
-        #pending-list li, #all-requests-list li { margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
+        #pending-list, #all-requests-list, #recent-deposits, #recent-withdrawals { list-style: none; padding: 0; }
+        #pending-list li, #all-requests-list li, #recent-deposits li, #recent-withdrawals li { margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
         .tab-container { display: flex; margin-bottom: 20px; }
         .tab { padding: 10px 20px; cursor: pointer; border-bottom: 2px solid transparent; }
         .tab.active { border-bottom: 2px solid #333; font-weight: bold; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+        .method-buttons { display: flex; gap: 10px; margin-bottom: 10px; }
+        .method-button { padding: 8px 16px; border: 1px solid #ddd; cursor: pointer; }
+        .method-button.active { background: #333; color: white; }
     </style>
 </head>
 <body>
@@ -37,7 +40,7 @@
         <h1>Prop Firm Dashboard</h1>
     </header>
 
-   <nav id="menu">
+ <nav id="menu">
         <ul>
             <li data-section="dashboard-section">Dashboard</li>
             <li data-section="co-funding-section">Co-Funding Request</li>
@@ -46,7 +49,7 @@
         </ul>
     </nav>
 
-  <div id="main-content">
+ <div id="main-content">
         <!-- Dashboard Section -->
         <section id="dashboard-section">
             <h2>Welcome to the Dashboard</h2>
@@ -55,7 +58,7 @@
             <p>Placeholder for recent results (e.g., success rates, payouts).</p>
         </section>
 
-<!-- Co-Funding Section -->
+     <!-- Co-Funding Section -->
   <section id="co-funding-section">
             <h1>Co-Funding Request</h1>
             <h2>Step 1: Select Prop Firm</h2>
@@ -81,7 +84,7 @@
         </section>
 
         <!-- Wallet Dashboard Section -->
-   <section id="wallet-section">
+  <section id="wallet-section">
             <h1>Wallet Dashboard</h1>
             <div class="tab-container">
                 <div class="tab active" data-tab="deposit-tab">Deposit</div>
@@ -89,37 +92,58 @@
             </div>
             <div id="deposit-tab" class="tab-content active">
                 <h2>Deposit Funds</h2>
-                <p><strong>Account Details:</strong></p>
-                <p>Wallet Address: 0x1234567890abcdef (Simulated)</p>
-                <p>Bank: Example Bank, Account: 1234-5678-9012, Routing: 987654321</p>
-                <label for="deposit-amount">Deposit Amount ($):</label>
-                <input type="number" id="deposit-amount" min="1">
-                <label for="payment-proof">Upload Proof of Payment:</label>
-                <input type="file" id="payment-proof" accept="image/*,application/pdf">
-                <button id="submit-deposit">Submit Deposit</button>
+                <label>Choose Method:</label>
+                <div class="method-buttons">
+                    <button class="method-button active" data-method="Bank">💳 Bank</button>
+                    <button class="method-button" data-method="Card">💵 Card</button>
+                    <button class="method-button" data-method="Crypto">🔗 Crypto</button>
+                </div>
+                <label for="deposit-amount">Amount ($):</label>
+                <input type="number" id="deposit-amount" min="1" value="500">
+                <label for="deposit-currency">Currency:</label>
+                <select id="deposit-currency">
+                    <option value="USD">USD</option>
+                </select>
+                <div id="deposit-details">
+                    <p><strong>Payment Details:</strong></p>
+                    <p>Bank: Example Bank, Account: 1234-5678-9012, Routing: 987654321</p>
+                    <label for="payment-proof">Upload Proof of Payment:</label>
+                    <input type="file" id="payment-proof" accept="image/*,application/pdf">
+                </div>
+                <button id="submit-deposit">Confirm Deposit</button>
+                <h2>Recent Deposits</h2>
+                <ul id="recent-deposits" class="transaction-list"></ul>
             </div>
             <div id="withdraw-tab" class="tab-content">
                 <h2>Withdraw Funds</h2>
-                <label for="withdraw-amount">Withdrawal Amount ($):</label>
-                <input type="number" id="withdraw-amount" min="1">
-                <label for="payout-method">Payout Method:</label>
-                <select id="payout-method">
-                    <option value="Bank Transfer">Bank Transfer</option>
-                    <option value="Crypto">Crypto</option>
+                <p><strong>Available Balance:</strong> $2,450.00</p>
+                <label for="withdraw-amount">Amount ($):</label>
+                <input type="number" id="withdraw-amount" min="1" value="200">
+                <label for="withdraw-method">Method:</label>
+                <select id="withdraw-method">
+                    <option value="Bank">🏦 Bank</option>
+                    <option value="Crypto">🔗 Crypto</option>
+                    <option value="Mobile Money">📲 Mobile Money</option>
                 </select>
+                <label for="withdraw-destination">Destination:</label>
+                <input type="text" id="withdraw-destination" placeholder="Enter wallet address or bank account">
+                <label for="withdraw-security">Security (OTP/PIN):</label>
+                <input type="text" id="withdraw-security" placeholder="Enter OTP or PIN">
                 <button id="submit-withdraw">Submit Withdrawal</button>
+                <h2>Recent Withdrawals</h2>
+                <ul id="recent-withdrawals" class="transaction-list"></ul>
             </div>
         </section>
 
         <!-- View All Requests Section -->
-   <section id="requests-section">
+ <section id="requests-section">
             <h2>All Requests</h2>
             <ul id="all-requests-list"></ul>
             <button id="view-pending">View and Accept Pending Requests</button>
         </section>
     </div>
 
-  <!-- Pending Requests Modal -->
+    <!-- Pending Requests Modal -->
   <div id="pending-modal">
         <div id="pending-content">
             <h2>Pending Requests</h2>
@@ -128,7 +152,7 @@
         </div>
     </div>
 
-   <script>
+  <script>
         // Prop Firm Data
         const propFirms = {
             "FTMO": {
@@ -190,6 +214,9 @@
                 menu.style.display = 'none';
                 if (sectionId === 'requests-section') {
                     loadAllRequests();
+                } else if (sectionId === 'wallet-section') {
+                    updateDepositDetails();
+                    loadRecentTransactions();
                 }
             });
         });
@@ -212,14 +239,22 @@
         const tabs = document.querySelectorAll('.tab');
         const tabContents = document.querySelectorAll('.tab-content');
         const depositAmount = document.getElementById('deposit-amount');
+        const depositCurrency = document.getElementById('deposit-currency');
         const paymentProof = document.getElementById('payment-proof');
         const submitDeposit = document.getElementById('submit-deposit');
         const withdrawAmount = document.getElementById('withdraw-amount');
-        const payoutMethod = document.getElementById('payout-method');
+        const withdrawMethod = document.getElementById('withdraw-method');
+        const withdrawDestination = document.getElementById('withdraw-destination');
+        const withdrawSecurity = document.getElementById('withdraw-security');
         const submitWithdraw = document.getElementById('submit-withdraw');
+        const depositDetails = document.getElementById('deposit-details');
+        const recentDeposits = document.getElementById('recent-deposits');
+        const recentWithdrawals = document.getElementById('recent-withdrawals');
+        const methodButtons = document.querySelectorAll('.method-button');
 
         let selectedAccount = 'N/A';
         let accountPrice = 0.0;
+        let selectedDepositMethod = 'Bank';
 
         // Load requests from localStorage
         function loadRequests() {
@@ -314,16 +349,40 @@
                 profit_split: profitSplit,
                 requester_share: reqShareVal,
                 co_funder_share: coShareVal,
-                status: 'Pending'
+                status: 'Pending',
+                date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
             };
             requests.push(newRequest);
             saveRequests(requests);
 
             alert(`Co-Funding Request submitted! Your contribution: $${reqShareVal.toFixed(2)} (Locked in Escrow). Waiting for a co-funder... Status: Pending`);
-
             profitSplitInput.value = '50:50';
             firmSelect.value = 'System/Partner Will Choose';
             updateAccountSizes();
+        }
+
+        // Update deposit payment details
+        function updateDepositDetails() {
+            const details = {
+                'Bank': `
+                    <p><strong>Payment Details:</strong></p>
+                    <p>Bank: Example Bank, Account: 1234-5678-9012, Routing: 987654321</p>
+                    <label for="payment-proof">Upload Proof of Payment:</label>
+                    <input type="file" id="payment-proof" accept="image/*,application/pdf">
+                `,
+                'Card': `
+                    <p><strong>Payment Details:</strong></p>
+                    <label for="card-number">Card Number:</label>
+                    <input type="text" id="card-number" placeholder="1234-5678-9012-3456">
+                `,
+                'Crypto': `
+                    <p><strong>Payment Details:</strong></p>
+                    <p>Wallet Address: 0x1234567890abcdef</p>
+                    <label for="payment-proof">Upload Proof of Payment:</label>
+                    <input type="file" id="payment-proof" accept="image/*,application/pdf">
+                `
+            };
+            depositDetails.innerHTML = details[selectedDepositMethod];
         }
 
         // Submit deposit request
@@ -334,10 +393,21 @@
                 return;
             }
 
-            const proof = paymentProof.files[0];
-            if (!proof) {
-                alert('Please upload proof of payment.');
-                return;
+            let details = {};
+            if (selectedDepositMethod === 'Bank' || selectedDepositMethod === 'Crypto') {
+                const proof = document.getElementById('payment-proof')?.files[0];
+                if (!proof) {
+                    alert('Please upload proof of payment.');
+                    return;
+                }
+                details.proof = proof.name;
+            } else if (selectedDepositMethod === 'Card') {
+                const cardNumber = document.getElementById('card-number')?.value;
+                if (!cardNumber) {
+                    alert('Please enter a valid card number.');
+                    return;
+                }
+                details.card_number = cardNumber;
             }
 
             const requests = loadRequests();
@@ -345,15 +415,20 @@
                 id: requests.length + 1,
                 type: 'deposit',
                 amount: amount,
-                proof: proof.name, // Simulated file upload
-                status: 'Pending'
+                method: selectedDepositMethod,
+                currency: depositCurrency.value,
+                details: details,
+                status: 'Pending',
+                date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
             };
             requests.push(newRequest);
             saveRequests(requests);
 
-            alert(`Deposit request for $${amount.toFixed(2)} submitted! Proof: ${proof.name}. Status: Pending`);
-            depositAmount.value = '';
-            paymentProof.value = '';
+            alert(`Deposit request for $${amount.toFixed(2)} via ${selectedDepositMethod} submitted! Status: Pending`);
+            depositAmount.value = '500';
+            if (document.getElementById('payment-proof')) document.getElementById('payment-proof').value = '';
+            if (document.getElementById('card-number')) document.getElementById('card-number').value = '';
+            loadRecentTransactions();
         }
 
         // Submit withdrawal request
@@ -363,22 +438,67 @@
                 alert('Please enter a valid withdrawal amount.');
                 return;
             }
+            if (amount > 2450) {
+                alert('Withdrawal amount exceeds available balance ($2,450.00).');
+                return;
+            }
 
-            const method = payoutMethod.value;
+            const method = withdrawMethod.value;
+            const destination = withdrawDestination.value;
+            if (!destination) {
+                alert('Please enter a valid destination.');
+                return;
+            }
+
+            const security = withdrawSecurity.value;
+            if (!security) {
+                alert('Please enter OTP or PIN.');
+                return;
+            }
+
             const requests = loadRequests();
             const newRequest = {
                 id: requests.length + 1,
                 type: 'withdraw',
                 amount: amount,
-                payout_method: method,
-                status: 'Pending'
+                method: method,
+                destination: destination,
+                security: security,
+                status: 'Pending',
+                date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
             };
             requests.push(newRequest);
             saveRequests(requests);
 
             alert(`Withdrawal request for $${amount.toFixed(2)} via ${method} submitted! Status: Pending`);
-            withdrawAmount.value = '';
-            payoutMethod.value = 'Bank Transfer';
+            withdrawAmount.value = '200';
+            withdrawMethod.value = 'Bank';
+            withdrawDestination.value = '';
+            withdrawSecurity.value = '';
+            loadRecentTransactions();
+        }
+
+        // Load recent transactions
+        function loadRecentTransactions() {
+            const requests = loadRequests();
+            recentDeposits.innerHTML = '';
+            recentWithdrawals.innerHTML = '';
+
+            const deposits = requests.filter(req => req.type === 'deposit').slice(-5);
+            deposits.forEach(req => {
+                const li = document.createElement('li');
+                li.textContent = `${req.date} | ${req.method} | $${req.amount.toFixed(2)} | ${req.status === 'Completed' ? '✅ Completed' : '⏳ Pending'}`;
+                recentDeposits.appendChild(li);
+            });
+            if (deposits.length === 0) recentDeposits.innerHTML = '<li>No recent deposits.</li>';
+
+            const withdrawals = requests.filter(req => req.type === 'withdraw').slice(-5);
+            withdrawals.forEach(req => {
+                const li = document.createElement('li');
+                li.textContent = `${req.date} | ${req.method} | $${req.amount.toFixed(2)} | ${req.status === 'Completed' ? '✅ Completed' : '⏳ Pending'}`;
+                recentWithdrawals.appendChild(li);
+            });
+            if (withdrawals.length === 0) recentWithdrawals.innerHTML = '<li>No recent withdrawals.</li>';
         }
 
         // View pending co-funding requests
@@ -440,9 +560,9 @@
                 if (req.type === 'co-funding') {
                     text += `Firm: ${req.prop_firm} | Size: ${req.account_size} | Price: $${req.account_price.toFixed(2)} | Profit Split: ${req.profit_split} | Requester Share: $${req.requester_share.toFixed(2)} | Co-Funder Share: $${req.co_funder_share.toFixed(2)}`;
                 } else if (req.type === 'deposit') {
-                    text += `Amount: $${req.amount.toFixed(2)} | Proof: ${req.proof}`;
+                    text += `Amount: $${req.amount.toFixed(2)} | Method: ${req.method} | ${'proof' in req.details ? `Proof: ${req.details.proof}` : `Card: ${req.details.card_number}`}`;
                 } else if (req.type === 'withdraw') {
-                    text += `Amount: $${req.amount.toFixed(2)} | Payout Method: ${req.payout_method}`;
+                    text += `Amount: $${req.amount.toFixed(2)} | Method: ${req.method} | Destination: ${req.destination}`;
                 }
                 text += ` | Status: ${req.status}`;
                 li.textContent = text;
@@ -467,6 +587,7 @@
             saveRequests(requests);
             alert(`Request ID ${id} marked as Completed!`);
             loadAllRequests();
+            loadRecentTransactions();
         }
 
         // Tab switching
@@ -476,6 +597,16 @@
                 tabContents.forEach(c => c.classList.remove('active'));
                 tab.classList.add('active');
                 document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Deposit method switching
+        methodButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                methodButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                selectedDepositMethod = button.dataset.method;
+                updateDepositDetails();
             });
         });
 
@@ -490,7 +621,9 @@
 
         // Initial load
         updateAccountSizes();
+        updateDepositDetails();
         loadAllRequests();
+        loadRecentTransactions();
     </script>
 </body>
 </html>
